@@ -5,7 +5,7 @@ from ctypes import windll, byref, c_ubyte
 import os
 import string
 import time
-import websocket
+from websocket import create_connection
 import requests as requests
 import json
 try:
@@ -85,23 +85,20 @@ def getScriptDir():
 
 class Socket():
     def __init__(self):
-        Address = "ws://127.0.0.1:5798/ws"  # Socket服务器地址,根据自己情况修改
-        self.ws = websocket.WebSocket()
         try:
-            self.ws.connect(Address)
+            self.ws = create_connection("ws://127.0.0.1:5798")
         except Exception:
-            print(time.strftime(
-                "[%Y-%m-%d %H:%M:%S]", time.localtime()) + ' [ERROR] 无法连接到WebSocket服务器,请检查服务器是否启动')
+            self.on_error()
 
-    def close(self):
-        self.sock.close()
+    def on_error(ws, error):
+        print(time.strftime(
+            "[%Y-%m-%d %H:%M:%S]", time.localtime()) + ' [ERROR] 无法连接到WebSocket服务器,请检查服务器是否启动')
 
     def sendMsg(self, msg):
         try:
-            self.ws.send(msg.encode())  # 尝试向服务端发送消息
+            self.ws.send(msg.encode())
         except Exception:
-            print(time.strftime(
-                "[%Y-%m-%d %H:%M:%S]", time.localtime()) + ' [ERROR] 无法连接到WebSocket服务器,请检查服务器是否启动')
+            self.on_error("send error")
 
 
 class Watcher():
@@ -121,9 +118,9 @@ class Watcher():
             sz2 = sp[1]  # 图像的宽度（列 范围）cols
             # sz3 = sp[2]                #像素值由【RGB】三原色组成
 
-            a = int(600-350)  # y start 这个数值按实际来写417
+            a = int(460)  # y start 这个数值按实际来写417
             b = int(sz1)  # y end
-            c = int(1040-265)  # x start 这个数值按实际来写1171
+            c = int(1171)  # x start 这个数值按实际来写1171
             d = int(sz2)  # x end
             cropImg = image[a:b, c:d]  # 裁剪图像
             try:
